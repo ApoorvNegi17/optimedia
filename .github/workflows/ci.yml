@@ -1,0 +1,54 @@
+name: C++ CI Matrix
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ libboost-system-dev libopencv-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libwebp-dev pkg-config
+
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew update
+        brew install cmake boost opencv ffmpeg webp pkg-config
+
+    - name: Install Dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        # Using vcpkg to install dependencies on Windows
+        vcpkg install boost-system opencv4 ffmpeg libwebp pkgconf
+      shell: bash
+
+    - name: Configure CMake
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=Release
+        -DMEDIA_COMPRESS_NET_BUILD_TESTS=ON
+      env:
+        # On Windows, we need to instruct CMake to use the vcpkg toolchain
+        CMAKE_TOOLCHAIN_FILE: ${{ matrix.os == 'windows-latest' && '$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake' || '' }}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config Release
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest -C Release --output-on-failure
