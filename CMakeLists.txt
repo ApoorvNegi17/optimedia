@@ -10,7 +10,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find Dependencies
 find_package(Threads REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system)
+if(WIN32)
+    find_package(Boost REQUIRED COMPONENTS system)
+else()
+    find_package(Boost REQUIRED)
+endif()
 find_package(OpenCV REQUIRED)
 
 if(WIN32)
@@ -43,11 +47,20 @@ target_include_directories(media_compress_net PUBLIC
 # Link libraries
 target_link_libraries(media_compress_net PUBLIC
     Threads::Threads
-    Boost::system
     ${OpenCV_LIBS}
     ${FFMPEG_LIBS}
     ${WEBP_LIBS}
 )
+
+if(WIN32)
+    target_link_libraries(media_compress_net PUBLIC Boost::system)
+else()
+    if(TARGET Boost::headers)
+        target_link_libraries(media_compress_net PUBLIC Boost::headers)
+    elseif(TARGET Boost::boost)
+        target_link_libraries(media_compress_net PUBLIC Boost::boost)
+    endif()
+endif()
 
 # --- Install & Export ---
 include(GNUInstallDirs)
