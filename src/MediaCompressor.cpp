@@ -65,7 +65,6 @@ bool MediaCompressor::compress_video(const std::string& input_path, const std::s
     }
 
     // Configure the context
-    codec_ctx->profile = FF_PROFILE_H264_MAIN;
     codec_ctx->width = config.target_width;
     codec_ctx->height = config.target_height;
     codec_ctx->time_base = {1, config.fps};
@@ -76,6 +75,7 @@ bool MediaCompressor::compress_video(const std::string& input_path, const std::s
     AVDictionary* opt = nullptr;
     av_dict_set(&opt, "preset", config.preset.c_str(), 0);
     av_dict_set(&opt, "crf", std::to_string(config.crf).c_str(), 0);
+    av_dict_set(&opt, "profile", "main", 0);
     av_dict_set(&opt, "tune", "zerolatency", 0);
 
     if (avcodec_open2(codec_ctx, codec, &opt) < 0) {
