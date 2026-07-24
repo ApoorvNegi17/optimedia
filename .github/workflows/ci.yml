@@ -30,6 +30,15 @@ jobs:
         brew update
         brew install cmake boost opencv ffmpeg webp pkg-config
 
+    - name: Cache vcpkg binaries (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/cache@v3
+      with:
+        path: ~/AppData/Local/vcpkg/archives
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('.github/workflows/ci.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-vcpkg-
+
     - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
