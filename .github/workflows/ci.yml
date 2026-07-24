@@ -37,14 +37,23 @@ jobs:
         vcpkg install boost-system opencv4 ffmpeg libwebp pkgconf
       shell: bash
 
-    - name: Configure CMake
+    - name: Configure CMake (Ubuntu/macOS)
+      if: matrix.os != 'windows-latest'
       run: >
         cmake -B ${{github.workspace}}/build
         -DCMAKE_BUILD_TYPE=Release
         -DMEDIA_COMPRESS_NET_BUILD_TESTS=ON
       env:
-        # On Windows, we need to instruct CMake to use the vcpkg toolchain
-        CMAKE_TOOLCHAIN_FILE: ${{ matrix.os == 'windows-latest' && '$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake' || '' }}
+        PKG_CONFIG_PATH: "/opt/homebrew/lib/pkgconfig:/usr/local/lib/pkgconfig"
+
+    - name: Configure CMake (Windows)
+      if: matrix.os == 'windows-latest'
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=Release
+        -DMEDIA_COMPRESS_NET_BUILD_TESTS=ON
+        -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+      shell: bash
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config Release

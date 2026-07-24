@@ -13,10 +13,20 @@ find_package(Threads REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
 
-# Use PkgConfig for FFmpeg, libwebp
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
-pkg_check_modules(WEBP REQUIRED IMPORTED_TARGET libwebp)
+if(WIN32)
+    # vcpkg provides find_package wrappers for these
+    find_package(FFMPEG REQUIRED)
+    find_package(WebP CONFIG REQUIRED)
+    set(FFMPEG_LIBS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swscale)
+    set(WEBP_LIBS WebP::webp)
+else()
+    # Use PkgConfig on Unix-like systems
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
+    pkg_check_modules(WEBP REQUIRED IMPORTED_TARGET libwebp)
+    set(FFMPEG_LIBS PkgConfig::FFMPEG)
+    set(WEBP_LIBS PkgConfig::WEBP)
+endif()
 
 # Define the library
 add_library(media_compress_net
@@ -35,8 +45,8 @@ target_link_libraries(media_compress_net PUBLIC
     Threads::Threads
     Boost::system
     ${OpenCV_LIBS}
-    PkgConfig::FFMPEG
-    PkgConfig::WEBP
+    ${FFMPEG_LIBS}
+    ${WEBP_LIBS}
 )
 
 # --- Install & Export ---
