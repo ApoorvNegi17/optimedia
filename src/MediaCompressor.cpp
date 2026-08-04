@@ -51,50 +51,36 @@ std::vector<uint8_t> MediaCompressor::compress_image(const std::vector<uint8_t>&
 }
 
 bool MediaCompressor::compress_video(const std::string& input_path, const std::string& output_path, const VideoCompressConfig& config) {
-    // Snippet demonstrating FFmpeg video compression setup
-    const AVCodec* codec = avcodec_find_encoder_by_name("libx264");
-    if (!codec) {
-        std::cerr << "Codec libx264 not found." << std::endl;
-        return false;
-    }
-
-    AVCodecContext* codec_ctx = avcodec_alloc_context3(codec);
-    if (!codec_ctx) {
-        std::cerr << "Could not allocate video codec context." << std::endl;
-        return false;
-    }
-
-    // Configure the context
-    codec_ctx->width = config.target_width;
-    codec_ctx->height = config.target_height;
-    codec_ctx->time_base = {1, config.fps};
-    codec_ctx->framerate = {config.fps, 1};
-    codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-
-    // x264 specific options
-    AVDictionary* opt = nullptr;
-    av_dict_set(&opt, "preset", config.preset.c_str(), 0);
-    av_dict_set(&opt, "crf", std::to_string(config.crf).c_str(), 0);
-    av_dict_set(&opt, "profile", "main", 0);
-    av_dict_set(&opt, "tune", "zerolatency", 0);
-
-    if (avcodec_open2(codec_ctx, codec, &opt) < 0) {
-        std::cerr << "Could not open codec." << std::endl;
-        avcodec_free_context(&codec_ctx);
-        av_dict_free(&opt);
-        return false;
-    }
-
-    // Note: Full implementation would require setting up AVFormatContext for I/O,
-    // reading frames from input_path via av_read_frame/avcodec_send_packet,
-    // scaling with sws_scale, encoding with avcodec_send_frame/avcodec_receive_packet,
-    // and muxing to output_path.
+    std::cout << "Starting video compression using FFmpeg CLI wrapper..." << std::endl;
     
-    std::cout << "Successfully configured video codec for: " << output_path << std::endl;
-
-    av_dict_free(&opt);
-    avcodec_free_context(&codec_ctx);
-    return true; // Return true as a stub indicating successful setup
+    // Construct the FFmpeg command
+    std::string command = "ffmpeg -y -i \"" + input_path + "\" ";
+    
+    // Apply video configurations
+    command += "-vcodec libx264 ";
+    command += "-preset " + config.preset + " ";
+    command += "-crf " + std::to_string(config.crf) + " ";
+    command += "-vf scale=" + std::to_string(config.target_width) + ":" + std::to_string(config.target_height) + " ";
+    command += "-r " + std::to_string(config.fps) + " ";
+    
+    // Copy audio by default
+    command += "-c:a copy ";
+    
+    // Output path
+    command += "\"" + output_path + "\"";
+    
+    std::cout << "Executing: " << command << std::endl;
+    
+    // Execute the command synchronously
+    int result = std::system(command.c_str());
+    
+    if (result != 0) {
+        std::cerr << "FFmpeg compression failed with exit code: " << result << std::endl;
+        return false;
+    }
+    
+    std::cout << "Successfully compressed video to: " << output_path << std::endl;
+    return true;
 }
 
 std::future<std::vector<uint8_t>> MediaCompressor::compress_image_async(std::vector<uint8_t> input_data, ImageCompressConfig config) {
