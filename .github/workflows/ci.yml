@@ -30,20 +30,21 @@ jobs:
         brew update
         brew install cmake boost opencv ffmpeg webp pkg-config
 
-    - name: Cache vcpkg binaries (Windows)
+    - name: Export GitHub Actions cache environment variables
       if: matrix.os == 'windows-latest'
-      uses: actions/cache@v3
+      uses: actions/github-script@v6
       with:
-        path: ~/AppData/Local/vcpkg/archives
-        key: ${{ runner.os }}-vcpkg-${{ hashFiles('.github/workflows/ci.yml') }}
-        restore-keys: |
-          ${{ runner.os }}-vcpkg-
+        script: |
+          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
     - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
+      env:
+        VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
       run: |
         # Using vcpkg to install dependencies on Windows
-        vcpkg install boost-system opencv4 ffmpeg libwebp pkgconf
+        vcpkg install boost-system opencv4 ffmpeg libwebp
       shell: bash
 
     - name: Configure CMake (Ubuntu/macOS)

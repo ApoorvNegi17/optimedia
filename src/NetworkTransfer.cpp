@@ -1,8 +1,11 @@
+#define NOMINMAX
 #include "media_compress_net/NetworkTransfer.hpp"
 #include <boost/asio.hpp>
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <algorithm>
+#include <utility>
 
 using boost::asio::ip::tcp;
 
