@@ -10,27 +10,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find Dependencies
 find_package(Threads REQUIRED)
-if(WIN32)
-    find_package(Boost REQUIRED COMPONENTS system)
-else()
-    find_package(Boost REQUIRED)
-endif()
+find_package(Boost REQUIRED)
 find_package(OpenCV REQUIRED)
 
-if(WIN32)
-    # vcpkg provides find_package wrappers for these
-    find_package(FFMPEG REQUIRED)
-    find_package(WebP CONFIG REQUIRED)
-    set(FFMPEG_LIBS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swscale)
-    set(WEBP_LIBS WebP::webp)
-else()
-    # Use PkgConfig on Unix-like systems
+    # Use PkgConfig
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(FFMPEG REQUIRED IMPORTED_TARGET libavcodec libavformat libavutil libswscale)
     pkg_check_modules(WEBP REQUIRED IMPORTED_TARGET libwebp)
     set(FFMPEG_LIBS PkgConfig::FFMPEG)
     set(WEBP_LIBS PkgConfig::WEBP)
-endif()
 
 # Define the library
 add_library(media_compress_net
@@ -52,14 +40,10 @@ target_link_libraries(media_compress_net PUBLIC
     ${WEBP_LIBS}
 )
 
-if(WIN32)
-    target_link_libraries(media_compress_net PUBLIC Boost::system)
-else()
-    if(TARGET Boost::headers)
-        target_link_libraries(media_compress_net PUBLIC Boost::headers)
-    elseif(TARGET Boost::boost)
-        target_link_libraries(media_compress_net PUBLIC Boost::boost)
-    endif()
+if(TARGET Boost::headers)
+    target_link_libraries(media_compress_net PUBLIC Boost::headers)
+elseif(TARGET Boost::boost)
+    target_link_libraries(media_compress_net PUBLIC Boost::boost)
 endif()
 
 # --- Install & Export ---
