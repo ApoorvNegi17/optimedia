@@ -34,16 +34,19 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: actions/cache@v3
       with:
-        path: ~/AppData/Local/vcpkg/archives
+        path: ${{ github.workspace }}/vcpkg_cache
         key: ${{ runner.os }}-vcpkg-${{ hashFiles('.github/workflows/ci.yml') }}
         restore-keys: |
           ${{ runner.os }}-vcpkg-
 
     - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
+      env:
+        VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg_cache
       run: |
+        mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
         # Using vcpkg to install dependencies on Windows
-        vcpkg install boost-system opencv4 ffmpeg libwebp pkgconf
+        vcpkg install boost-system opencv4 ffmpeg libwebp
       shell: bash
 
     - name: Configure CMake (Ubuntu/macOS)
