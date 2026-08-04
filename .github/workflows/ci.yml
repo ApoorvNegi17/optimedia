@@ -1,4 +1,4 @@
-name: C++ CI Matrix
+name: CI
 
 on:
   push:
@@ -8,61 +8,22 @@ on:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    name: Build
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - name: Install Dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake g++ libboost-system-dev libopencv-dev ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libwebp-dev pkg-config
 
-    - name: Install Dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew update
-        brew install cmake boost opencv ffmpeg webp pkg-config
-
-    - name: Cache vcpkg binaries (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/cache@v3
-      with:
-        path: ~/AppData/Local/vcpkg/archives
-        key: ${{ runner.os }}-vcpkg-${{ hashFiles('.github/workflows/ci.yml') }}
-        restore-keys: |
-          ${{ runner.os }}-vcpkg-
-
-    - name: Install Dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        # Using vcpkg to install dependencies on Windows
-        vcpkg install boost-system opencv4 ffmpeg libwebp pkgconf
-      shell: bash
-
-    - name: Configure CMake (Ubuntu/macOS)
-      if: matrix.os != 'windows-latest'
+    - name: Configure
       run: >
         cmake -B ${{github.workspace}}/build
         -DCMAKE_BUILD_TYPE=Release
         -DMEDIA_COMPRESS_NET_BUILD_TESTS=ON
-      env:
-        PKG_CONFIG_PATH: "/opt/homebrew/lib/pkgconfig:/usr/local/lib/pkgconfig"
-
-    - name: Configure CMake (Windows)
-      if: matrix.os == 'windows-latest'
-      run: >
-        cmake -B ${{github.workspace}}/build
-        -DCMAKE_BUILD_TYPE=Release
-        -DMEDIA_COMPRESS_NET_BUILD_TESTS=ON
-        -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-      shell: bash
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config Release
