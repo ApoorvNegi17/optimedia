@@ -1,0 +1,14 @@
+{
+  "name": "media-compress-net",
+  "version": "0.1.0",
+  "dependencies": [
+    "boost-system",
+    "ffmpeg",
+    "libwebp",
+    {
+      "name": "opencv4",
+      "default-features": false,
+      "features": ["jpeg", "png", "webp"]
+    }
+  ]
+}

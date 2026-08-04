@@ -1,6 +1,7 @@
 #include "media_compress_net/MediaCompressor.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
 // FFmpeg includes (extern "C")
 extern "C" {

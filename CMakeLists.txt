@@ -21,7 +21,16 @@ if(WIN32)
     # vcpkg provides find_package wrappers for these
     find_package(FFMPEG REQUIRED)
     find_package(WebP CONFIG REQUIRED)
-    set(FFMPEG_LIBS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swscale)
+    
+    if(NOT TARGET FFmpeg::FFmpeg)
+        add_library(FFmpeg::FFmpeg INTERFACE IMPORTED)
+        set_target_properties(FFmpeg::FFmpeg PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${FFMPEG_INCLUDE_DIRS}"
+            INTERFACE_LINK_LIBRARIES "${FFMPEG_LIBRARIES}"
+        )
+    endif()
+    
+    set(FFMPEG_LIBS FFmpeg::FFmpeg)
     set(WEBP_LIBS WebP::webp)
 else()
     # Use PkgConfig on Unix-like systems
