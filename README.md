@@ -1,4 +1,4 @@
-# Optimedia
+# Optimedia 0.1
 
 Optimedia is a high-performance C++17 library designed for media compression and asynchronous network transmission. Built on industry-standard backend tools (FFmpeg, OpenCV, libwebp, and Boost.Asio), it abstracts the complexities of native media encoding and socket programming into a robust, asynchronous API.
 
